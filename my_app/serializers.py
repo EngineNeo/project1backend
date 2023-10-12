@@ -15,9 +15,11 @@ class FilmSerializer(serializers.ModelSerializer):
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = '__all__'  # You can specify specific fields if needed
+        fields = '__all__'
 
 class RentalSerializer(serializers.ModelSerializer):
+    film_title = serializers.CharField(source='inventory.film.title', read_only=True)
+
     class Meta:
         model = Rental
-        fields = '__all__'  # You can specify specific fields if needed
+        fields = ['rental_id', 'rental_date', 'return_date', 'film_title']
