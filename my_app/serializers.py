@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import Actor, Film, Customer, Rental
+from .models import Actor, Film, Customer, Rental, Address
 
 class ActorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,3 +23,8 @@ class RentalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rental
         fields = ['rental_id', 'rental_date', 'return_date', 'film_title']
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = '__all__'

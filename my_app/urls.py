@@ -1,5 +1,9 @@
 from django.urls import path, include
-from .views import TopMoviesView, TopActorsView, CustomerListView, CustomerDetailView, RentalListView, FilmListView
+from .views import (
+    TopMoviesView, TopActorsView, CustomerListView, 
+    CustomerDetailView, RentalListView, FilmListView, 
+    AddressListView, AddressDetailView, create_rental
+)
 
 urlpatterns = [
     path('top-movies/', TopMoviesView.as_view(), name='top-movies'),
@@ -7,5 +11,8 @@ urlpatterns = [
     path('customers/', CustomerListView.as_view(), name='customer-list'),
     path('customers/<int:pk>/', CustomerDetailView.as_view(), name='customer-detail'),
     path('rentals/', RentalListView.as_view(), name='rental-list'),
+    path('rentals/create/', create_rental, name='create-rental'),
     path('films/', FilmListView.as_view(), name='film-list'),
+    path('addresses/', AddressListView.as_view(), name='address-list'),
+    path('addresses/<int:pk>/', AddressDetailView.as_view(), name='address-detail'),
 ]

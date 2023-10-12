@@ -1,11 +1,14 @@
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Rental, Film, Actor, Customer
-from .serializers import FilmSerializer, ActorSerializer, CustomerSerializer, RentalSerializer
+from .models import Rental, Film, Actor, Customer, Address, Inventory, Staff
+from .serializers import FilmSerializer, ActorSerializer, CustomerSerializer, RentalSerializer, AddressSerializer
 from django.db.models import Q
+from django.utils import timezone
 
 class TopMoviesView(APIView):
     def get(self, request):
@@ -46,6 +49,10 @@ class CustomerListView(generics.ListCreateAPIView):
         customer_id = self.request.query_params.get('customer_id')
         first_name = self.request.query_params.get('first_name')
         last_name = self.request.query_params.get('last_name')
+        email = self.request.query_params.get('email', None)
+
+        if email is not None:
+            queryset = queryset.filter(email__icontains=email)
 
         filter_conditions = Q()
 
@@ -115,3 +122,38 @@ class FilmListView(generics.ListAPIView):
         queryset = queryset.filter(filter_conditions)
 
         return queryset
+    
+class AddressListView(generics.ListCreateAPIView):
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer
+
+class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer
+
+@csrf_exempt
+def create_rental(request):
+    if request.method == 'POST':
+        # Extract information from the request
+        film_id = request.POST.get('film_id')
+        customer_id = request.POST.get('customer_id')
+        staff_id = request.POST.get('staff_id')  # Assign a staff for this transaction
+
+        # Validate and fetch the related instances
+        inventory = get_object_or_404(Inventory, film_id=film_id)  # You may need extra logic here if one film has multiple inventory items
+        customer = get_object_or_404(Customer, pk=customer_id)
+        staff = get_object_or_404(Staff, pk=staff_id)
+
+        # Create the rental instance
+        rental = Rental(
+            rental_date=timezone.now(),
+            inventory=inventory,
+            customer=customer,
+            staff=staff,
+            # Assuming the return_date will be set in another process
+        )
+        rental.save()
+
+        return JsonResponse({"success": True, "rental_id": rental.rental_id}, status=201)
+
+    return JsonResponse({"error": "Only POST method is allowed"}, status=405)
