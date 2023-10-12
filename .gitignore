@@ -1,2 +1,6 @@
 # Virtual env
 myenv/
+
+# Pycache
+/pycache/*
+__pycache__/
