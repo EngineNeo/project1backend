@@ -1,6 +1,6 @@
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Rental, Film, Actor, Customer
@@ -62,6 +62,13 @@ class CustomerListView(generics.ListCreateAPIView):
         queryset = queryset.filter(filter_conditions)
 
         return queryset
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomerDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -97,12 +104,12 @@ class FilmListView(generics.ListAPIView):
             filter_conditions &= Q(title__icontains=film_name)
 
         if actor_name:
-            # Assuming 'filmactor' is the related name for the ManyToMany field with Actor
             filter_conditions &= Q(filmactor__actor__first_name__icontains=actor_name) | \
                                 Q(filmactor__actor__last_name__icontains=actor_name)
 
         if genre:
-            filter_conditions &= Q(genre__icontains=genre)
+            # Adjusted the genre filter to work through the FilmCategory model
+            filter_conditions &= Q(filmcategory__category__name__icontains=genre)
 
         # Apply the filter conditions to the queryset
         queryset = queryset.filter(filter_conditions)
