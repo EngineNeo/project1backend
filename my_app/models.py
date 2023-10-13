@@ -103,18 +103,17 @@ class Category(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'category'
 
 
 class City(models.Model):
-    city_id = models.SmallAutoField(primary_key=True)
     city = models.CharField(max_length=50)
     country = models.ForeignKey('Country', models.DO_NOTHING)
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'city'
 
 
@@ -124,7 +123,7 @@ class Country(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'country'
 
 
@@ -143,7 +142,7 @@ class Customer(models.Model):
         self.last_update = timezone.now()
         super().save(*args, **kwargs)
     class Meta:
-        managed = False
+        managed = True
         db_table = 'customer'
 
 
@@ -178,7 +177,7 @@ class DjangoMigrations(models.Model):
     applied = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'django_migrations'
 
 
@@ -208,7 +207,7 @@ class Film(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'film'
 
 
@@ -218,7 +217,7 @@ class FilmActor(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'film_actor'
         unique_together = (('actor', 'film'),)
 
@@ -229,7 +228,7 @@ class FilmCategory(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'film_category'
         unique_together = (('film', 'category'),)
 
@@ -240,7 +239,7 @@ class FilmText(models.Model):
     description = models.TextField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'film_text'
 
 
@@ -251,7 +250,7 @@ class Inventory(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'inventory'
 
 
@@ -261,7 +260,7 @@ class Language(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'language'
 
 
@@ -275,7 +274,7 @@ class Payment(models.Model):
     last_update = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'payment'
 
 
@@ -289,7 +288,7 @@ class Rental(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'rental'
         unique_together = (('rental_date', 'inventory', 'customer'),)
 
@@ -312,7 +311,7 @@ class Staff(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'staff'
 
 
@@ -327,5 +326,5 @@ class Store(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'store'

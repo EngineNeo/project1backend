@@ -82,10 +82,14 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'sakila',
-        'USER': 'root',
+        'USER': 'django',
         'PASSWORD': 'Password123',
-        'HOST': 'localhost',   # Set to your MySQL host.
-        'PORT': '3306',        # Default MySQL port.
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'TEST': {
+            'NAME': 'test_sakila',
+        },
+        'TEST_NAME': 'sakila_test'
     }
 }
 
