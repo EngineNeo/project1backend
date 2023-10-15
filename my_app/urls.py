@@ -14,4 +14,5 @@ urlpatterns = [
     path('available-films/<int:film_id>/', views.AvailableFilmsView.as_view()),
     path('create-rental/', views.create_rental, name='create_rental'),
     path('api/rent-film/', views.rent_film_api, name='rent_film_api'),
+    path('update-customer/<int:customer_id>/', views.update_customer, name='update_customer'),
 ]

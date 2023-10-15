@@ -201,3 +201,12 @@ def rent_film_api(request):
         rental.save()
 
         return Response({'message': 'Film rented successfully'}, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def update_customer(request, customer_id):
+    customer = get_object_or_404(Customer, customer_id=customer_id)
+    serializer = CustomerSerializer(customer, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

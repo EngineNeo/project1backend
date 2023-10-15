@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.utils import timezone
 
 class Actor(models.Model):
     actor_id = models.SmallAutoField(primary_key=True)
@@ -8,7 +8,7 @@ class Actor(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'actor'
 
 
@@ -137,8 +137,11 @@ class Customer(models.Model):
     address = models.ForeignKey(Address, models.DO_NOTHING)
     active = models.IntegerField()
     create_date = models.DateTimeField()
-    last_update = models.DateTimeField(blank=True, null=True)
+    last_update = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        self.last_update = timezone.now()
+        super().save(*args, **kwargs)
     class Meta:
         managed = False
         db_table = 'customer'

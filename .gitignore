@@ -4,3 +4,4 @@ myenv/
 # Pycache
 /pycache/*
 __pycache__/
+.pytest_cache/
