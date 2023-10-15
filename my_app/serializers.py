@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import Actor, Film, Customer, Rental, Address
+from .models import Actor, Film, Customer, Rental, Address, Inventory
 
 class ActorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,3 +28,8 @@ class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = '__all__'
+
+class InventorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inventory
+        fields = ['inventory_id', 'film_id', 'store_id', 'last_update']

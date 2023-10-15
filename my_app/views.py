@@ -1,14 +1,19 @@
 from django.db.models import Count
+from django.db import transaction
 from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Rental, Film, Actor, Customer, Address, Inventory, Staff
-from .serializers import FilmSerializer, ActorSerializer, CustomerSerializer, RentalSerializer, AddressSerializer
-from django.db.models import Q
+from .models import Rental, Film, Actor, Customer, Address, Inventory
+from .serializers import ( FilmSerializer, ActorSerializer, 
+                          CustomerSerializer, RentalSerializer, AddressSerializer,
+                          InventorySerializer)
+from django.db.models import Q, Count
+from django.shortcuts import render, redirect
 from django.utils import timezone
+from datetime import timedelta
+from .forms import RentalForm
 
 class TopMoviesView(APIView):
     def get(self, request):
@@ -131,29 +136,68 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
 
-@csrf_exempt
+class AvailableFilmsView(APIView):
+    def get(self, request, film_id=None):
+        rented_film_ids = Rental.objects.filter(return_date__isnull=True).values_list('inventory__film', flat=True)
+        
+        if film_id:
+            available_films = Inventory.objects.filter(film_id=film_id).exclude(film__in=rented_film_ids).annotate(rental_count=Count('rental'))
+        else:
+            available_films = Inventory.objects.exclude(film__in=rented_film_ids).select_related('film').annotate(rental_count=Count('rental'))
+        
+        serializer = InventorySerializer(available_films, many=True)
+        return Response(serializer.data)
+
 def create_rental(request):
     if request.method == 'POST':
-        # Extract information from the request
-        film_id = request.POST.get('film_id')
-        customer_id = request.POST.get('customer_id')
-        staff_id = request.POST.get('staff_id')  # Assign a staff for this transaction
+        form = RentalForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('rental_success')
+    else:
+        form = RentalForm()
 
-        # Validate and fetch the related instances
-        inventory = get_object_or_404(Inventory, film_id=film_id)  # You may need extra logic here if one film has multiple inventory items
-        customer = get_object_or_404(Customer, pk=customer_id)
-        staff = get_object_or_404(Staff, pk=staff_id)
+    return render(request, 'create_rental.html', {'form': form})
 
-        # Create the rental instance
+@api_view(['POST'])
+def rent_film_api(request):
+    if request.method == 'POST':
+        email = request.data.get('email')
+        film_id = request.data.get('film_id')
+
+        # Get the customer from the email
+        try:
+            customer = Customer.objects.get(email=email)
+        except Customer.DoesNotExist:
+            return Response({'error': 'Customer not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Set a default staff_id
+        staff_id = 1
+
+        # Find an available inventory_id for the specified film_id
+        try:
+            inventory = Inventory.objects.filter(film_id=film_id).first()
+        except Inventory.DoesNotExist:
+            return Response({'error': 'No available inventory for specified film'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not inventory:
+            return Response({'error': 'No available inventory for specified film'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the film to calculate the return date
+        film = inventory.film
+        rental_duration = timedelta(days=film.rental_duration)
+        rental_date = timezone.now()
+        return_date = rental_date + rental_duration
+
+        # Create a new Rental instance
         rental = Rental(
-            rental_date=timezone.now(),
+            rental_date=rental_date,
             inventory=inventory,
             customer=customer,
-            staff=staff,
-            # Assuming the return_date will be set in another process
+            return_date=return_date,
+            staff_id=staff_id,
+            last_update=rental_date,  # Set the last update to the current timestamp
         )
         rental.save()
 
-        return JsonResponse({"success": True, "rental_id": rental.rental_id}, status=201)
-
-    return JsonResponse({"error": "Only POST method is allowed"}, status=405)
+        return Response({'message': 'Film rented successfully'}, status=status.HTTP_201_CREATED)
